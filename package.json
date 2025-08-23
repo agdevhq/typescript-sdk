@@ -1,0 +1,15 @@
+{
+    "name": "@ag/typescript-sdk",
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "dev": "tsx watch src/index.ts",
+        "build": "node esbuild.mjs"
+    },
+    "devDependencies": {
+        "@ag/esbuild-config": "*",
+        "@ag/eslint-config": "*",
+        "@ag/typescript-config": "*",
+        "@types/node": "^22"
+    }
+}
