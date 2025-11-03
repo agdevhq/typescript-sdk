@@ -12,6 +12,7 @@ export type AgentTool = {
 };
 
 export type CreateAgentRequest = {
+    /** Model stack ID - can be an alias (e.g., 'anthropic/default') or a concrete stack ID (e.g., 'anthropic/sonnet37-haiku35-20250722') */
     modelStackId: string;
     goalPrompt: string;
     inputSchema: JSONSchema;
@@ -21,6 +22,7 @@ export type CreateAgentRequest = {
 };
 
 export type UpdateAgentRequest = {
+    /** Model stack ID - can be an alias (e.g., 'anthropic/default') or a concrete stack ID (e.g., 'anthropic/sonnet37-haiku35-20250722') */
     modelStackId?: string;
     goalPrompt?: string;
     inputSchema?: JSONSchema;
@@ -57,10 +59,10 @@ export type AgentRunEvent = {
     runId: string;
     type: string;
     timestamp: string;
-    data: Record<string, any>;
+    data: Record<string, unknown>;
 };
 
-export type CreateAgentRunRequest = Record<string, any>;
+export type CreateAgentRunRequest = Record<string, unknown>;
 
 export type ListResponse<T> = {
     items: T[];

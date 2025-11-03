@@ -22,7 +22,7 @@ export class Client {
         endpoint: string,
         options: {
             method?: string;
-            body?: any;
+            body?: unknown;
             headers?: Record<string, string>;
         } = {}
     ): Promise<T> {
