@@ -54,13 +54,55 @@ export type AgentRun = {
     completedAt?: string;
 };
 
-export type AgentRunEvent = {
+type BaseAgentRunEvent = {
     id: string;
     runId: string;
-    type: string;
-    timestamp: string;
+    startedAt: string;
+    finishedAt: string | null;
+};
+
+export type AgentRunPlanningEvent = BaseAgentRunEvent & {
+    type: 'planning';
+    data: {
+        content: string;
+    };
+};
+
+export type AgentRunNarrationEvent = BaseAgentRunEvent & {
+    type: 'narration';
+    data: {
+        content: string;
+    };
+};
+
+export type AgentRunReasoningEvent = BaseAgentRunEvent & {
+    type: 'reasoning';
+    data: {
+        content: string;
+    };
+};
+
+export type AgentRunToolCallEvent = BaseAgentRunEvent & {
+    type: 'tool_call';
+    data: {
+        id: string;
+        name: string;
+        input: Record<string, unknown>;
+        output?: Record<string, unknown>;
+    };
+};
+
+export type AgentRunContextCompressionEvent = BaseAgentRunEvent & {
+    type: 'context_compression';
     data: Record<string, unknown>;
 };
+
+export type AgentRunEvent =
+    | AgentRunPlanningEvent
+    | AgentRunNarrationEvent
+    | AgentRunReasoningEvent
+    | AgentRunToolCallEvent
+    | AgentRunContextCompressionEvent;
 
 export type CreateAgentRunRequest = Record<string, unknown>;
 
