@@ -1,11 +1,16 @@
 import type {
     Agent,
+    AgentListItem,
+    AgentRevision,
+    AgentRevisionListItem,
     AgentRun,
     AgentRunEvent,
     ApiError,
     CreateAgentRequest,
     CreateAgentRunRequest,
     ListResponse,
+    PublishRevisionRequest,
+    RevisionDiff,
     UpdateAgentRequest,
 } from './types.js';
 
@@ -86,22 +91,22 @@ export class Client {
     /**
      * List all agents
      */
-    async listAgents(): Promise<ListResponse<Agent>> {
-        return this.request<ListResponse<Agent>>('/v0.1/agents/');
+    async listAgents(): Promise<ListResponse<AgentListItem>> {
+        return this.request<ListResponse<AgentListItem>>('/v0.2-preview/agents/');
     }
 
     /**
      * Get a specific agent by ID
      */
     async getAgent(agentId: string): Promise<Agent> {
-        return this.request<Agent>(`/v0.1/agents/${agentId}`);
+        return this.request<Agent>(`/v0.2-preview/agents/${agentId}`);
     }
 
     /**
      * Create a new agent
      */
     async createAgent(agentData: CreateAgentRequest): Promise<Agent> {
-        return this.request<Agent>('/v0.1/agents', {
+        return this.request<Agent>('/v0.2-preview/agents', {
             method: 'POST',
             body: agentData,
         });
@@ -114,7 +119,7 @@ export class Client {
         agentId: string,
         updates: UpdateAgentRequest
     ): Promise<Agent> {
-        return this.request<Agent>(`/v0.1/agents/${agentId}`, {
+        return this.request<Agent>(`/v0.2-preview/agents/${agentId}`, {
             method: 'PATCH',
             body: updates,
         });
@@ -124,9 +129,70 @@ export class Client {
      * Delete an agent
      */
     async deleteAgent(agentId: string): Promise<void> {
-        return this.request<void>(`/v0.1/agents/${agentId}`, {
+        return this.request<void>(`/v0.2-preview/agents/${agentId}`, {
             method: 'DELETE',
         });
+    }
+
+    /**
+     * List revisions for an agent
+     */
+    async listRevisions(
+        agentId: string,
+        limit = 20,
+        offset = 0
+    ): Promise<ListResponse<AgentRevisionListItem>> {
+        const params = new URLSearchParams({
+            limit: limit.toString(),
+            offset: offset.toString(),
+        });
+
+        return this.request<ListResponse<AgentRevisionListItem>>(
+            `/v0.2-preview/agents/${agentId}/revisions?${params.toString()}`
+        );
+    }
+
+    /**
+     * Get a specific agent revision
+     */
+    async getRevision(
+        agentId: string,
+        revisionId: string
+    ): Promise<AgentRevision> {
+        return this.request<AgentRevision>(
+            `/v0.2-preview/agents/${agentId}/revisions/${revisionId}`
+        );
+    }
+
+    /**
+     * Publish an agent revision. Publishes the latest revision if none is provided.
+     */
+    async publishRevision(
+        agentId: string,
+        data: PublishRevisionRequest = {}
+    ): Promise<Agent> {
+        return this.request<Agent>(`/v0.2-preview/agents/${agentId}/publish`, {
+            method: 'POST',
+            body: data,
+        });
+    }
+
+    /**
+     * Compare two agent revisions
+     */
+    async compareRevisions(
+        agentId: string,
+        fromRevisionId: string,
+        toRevisionId: string
+    ): Promise<RevisionDiff> {
+        const params = new URLSearchParams({
+            from: fromRevisionId,
+            to: toRevisionId,
+        });
+
+        return this.request<RevisionDiff>(
+            `/v0.2-preview/agents/${agentId}/revisions/diff?${params.toString()}`
+        );
     }
 
     // Agent run methods
@@ -138,7 +204,7 @@ export class Client {
         agentId: string,
         input: CreateAgentRunRequest
     ): Promise<AgentRun> {
-        return this.request<AgentRun>(`/v0.1/agents/${agentId}/runs`, {
+        return this.request<AgentRun>(`/v0.2-preview/agents/${agentId}/runs`, {
             method: 'POST',
             body: input,
         });
@@ -149,7 +215,7 @@ export class Client {
      */
     async listAgentRuns(agentId: string): Promise<ListResponse<AgentRun>> {
         return this.request<ListResponse<AgentRun>>(
-            `/v0.1/agents/${agentId}/runs/`
+            `/v0.2-preview/agents/${agentId}/runs/`
         );
     }
 
@@ -157,7 +223,9 @@ export class Client {
      * Get a specific agent run
      */
     async getAgentRun(agentId: string, runId: string): Promise<AgentRun> {
-        return this.request<AgentRun>(`/v0.1/agents/${agentId}/runs/${runId}`);
+        return this.request<AgentRun>(
+            `/v0.2-preview/agents/${agentId}/runs/${runId}`
+        );
     }
 
     /**
@@ -168,7 +236,7 @@ export class Client {
         runId: string
     ): Promise<ListResponse<AgentRunEvent>> {
         return this.request<ListResponse<AgentRunEvent>>(
-            `/v0.1/agents/${agentId}/runs/${runId}/events`
+            `/v0.2-preview/agents/${agentId}/runs/${runId}/events`
         );
     }
 

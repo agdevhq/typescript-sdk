@@ -72,8 +72,8 @@ export class Agent<
     /**
      * Update the agent configuration
      */
-    async update(updates: UpdateAgentRequest): Promise<void> {
-        await this.client.updateAgent(this.agentId, updates);
+    async update(updates: UpdateAgentRequest): Promise<AgentData> {
+        return await this.client.updateAgent(this.agentId, updates);
     }
 
     /**
@@ -178,7 +178,7 @@ export class Agent<
      */
     async getAllRuns(): Promise<AgentRunResult<TInput, TOutput>[]> {
         const response = await this.client.listAgentRuns(this.agentId);
-        return response.items.map((run) => ({
+        return response.data.map((run) => ({
             id: run.id,
             status: run.status,
             input: run.input as TInput,

@@ -5,43 +5,108 @@ export type JSONSchema = {
     [key: string]: unknown;
 };
 
-export type AgentTool = {
-    source: string;
-    serverId: string;
-    enabledTools: string[];
-};
+export type AgentTool =
+    | {
+          source: 'builtin';
+          type:
+              | 'searchWeb'
+              | 'searchNews'
+              | 'browseWebsite'
+              | 'codeInterpreter';
+      }
+    | {
+          source: 'mcp';
+          serverId: string;
+          enabledTools: string[];
+      };
 
-export type CreateAgentRequest = {
-    /** Model stack ID - can be an alias (e.g., 'anthropic/default') or a concrete stack ID (e.g., 'anthropic/sonnet37-haiku35-20250722') */
-    modelStackId: string;
-    goalPrompt: string;
-    inputSchema: JSONSchema;
-    tools: AgentTool[];
-    resultType: string;
-    customPlanningInstructions?: string;
-};
+export type ResultType = 'document' | 'json';
 
-export type UpdateAgentRequest = {
-    /** Model stack ID - can be an alias (e.g., 'anthropic/default') or a concrete stack ID (e.g., 'anthropic/sonnet37-haiku35-20250722') */
-    modelStackId?: string;
-    goalPrompt?: string;
-    inputSchema?: JSONSchema;
-    tools?: AgentTool[];
-    resultType?: string;
-    customPlanningInstructions?: string;
+export type NotificationTarget = {
+    type: 'webhook' | 'email';
+    target: string;
 };
 
 export type Agent = {
     id: string;
-    modelStackId: string;
-    goalPrompt: string;
-    inputSchema: JSONSchema;
-    tools: AgentTool[];
-    resultType: string;
-    customPlanningInstructions?: string;
+    organizationId: string;
+    metadata: {
+        name: string | null;
+        description: string | null;
+    };
+    config: {
+        /** Model stack ID - can be an alias (e.g., 'anthropic/default') or a concrete stack ID (e.g., 'anthropic/sonnet37-haiku35-20250722') */
+        modelStackId: string;
+        goalPrompt: string;
+        inputSchema: JSONSchema;
+        tools: AgentTool[];
+        drives: Array<{ driveId: string }>;
+        customPlanningInstructions: string | null;
+        customToolCallInstructions: string | null;
+        customResultInstructions: string | null;
+        enableReplanning: boolean;
+    } & (
+        | {
+              resultType: 'document';
+              resultSchema: null;
+          }
+        | {
+              resultType: 'json';
+              resultSchema: JSONSchema;
+          }
+    );
+    /**
+     * Notification targets are agent-scoped, not part of the revisioned
+     * config. Editing them does not create a new revision; this matches the
+     * operational reality of rotating webhooks/email recipients.
+     */
+    notificationTargets: NotificationTarget[];
     createdAt: string;
-    updatedAt: string;
+    latestRevisionId: string;
+    latestRevisionCreatedAt: string;
+    publishedRevisionId: string | null;
+    lastPublishedAt: string | null;
 };
+
+export type CreateAgentRequest = {
+    metadata?: Partial<Agent['metadata']>;
+    config: Agent['config'];
+    notificationTargets?: NotificationTarget[];
+};
+
+export type UpdateAgentRequest = {
+    metadata?: Partial<Agent['metadata']>;
+    config?: Partial<Agent['config']>;
+    notificationTargets?: NotificationTarget[];
+};
+
+export type AgentListItem = Omit<Agent, 'config' | 'notificationTargets'>;
+
+export type AgentRevision = {
+    id: string;
+    createdAt: string;
+    isPublished: boolean;
+    config: Agent['config'];
+};
+
+export type AgentRevisionListItem = {
+    id: string;
+    createdAt: string;
+    isPublished: boolean;
+};
+
+type AgentPublicationState = Pick<
+    Agent,
+    'latestRevisionId' | 'publishedRevisionId'
+>;
+
+export function hasPublishedRevision(agent: AgentPublicationState): boolean {
+    return agent.publishedRevisionId !== null;
+}
+
+export function hasUnpublishedRevisions(agent: AgentPublicationState): boolean {
+    return agent.latestRevisionId !== agent.publishedRevisionId;
+}
 
 export type AgentRun = {
     id: string;
@@ -106,11 +171,25 @@ export type AgentRunEvent =
 
 export type CreateAgentRunRequest = Record<string, unknown>;
 
-export type ListResponse<T> = {
-    items: T[];
+export type PublishRevisionRequest = {
+    revisionId?: string;
+};
+
+export type RevisionDiff = {
+    from: Agent['config'];
+    to: Agent['config'];
+    diff: Record<string, { from: unknown; to: unknown }>;
+};
+
+export type PaginationMeta = {
+    limit: number;
+    offset: number;
     total: number;
-    page?: number;
-    pageSize?: number;
+};
+
+export type ListResponse<T> = {
+    data: T[];
+    pagination: PaginationMeta;
 };
 
 export type ApiError = {
