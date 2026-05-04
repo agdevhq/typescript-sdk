@@ -20,7 +20,7 @@ export type AgentTool =
           enabledTools: string[];
       };
 
-export type ResultType = 'document' | 'json';
+export type ResultType = 'document' | 'json' | null;
 
 export type NotificationTarget = {
     type: 'webhook' | 'email';
@@ -53,6 +53,10 @@ export type Agent = {
         | {
               resultType: 'json';
               resultSchema: JSONSchema;
+          }
+        | {
+              resultType: null;
+              resultSchema: null;
           }
     );
     /**
@@ -113,7 +117,8 @@ export type AgentRun = {
     agentId: string;
     status: 'pending' | 'running' | 'done' | 'error';
     input: Record<string, unknown>;
-    resultData?: Record<string, unknown>;
+    resultType?: ResultType;
+    resultData?: Record<string, unknown> | null;
     createdAt: string;
     updatedAt: string;
     completedAt?: string;
